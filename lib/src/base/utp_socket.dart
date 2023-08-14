@@ -60,23 +60,20 @@ abstract class UTPSocket extends Socket {
   /// This socket was closed no not
   bool get isClosed;
 
-  /// Useless method
-  @deprecated
+  @Deprecated("Useless method")
   @override
   bool setOption(SocketOption option, bool enabled) {
     // TODO: implement setOption
     return false;
   }
 
-  /// Useless method
-  @deprecated
+  @Deprecated("Useless method")
   @override
   void setRawOption(RawSocketOption option) {
     // TODO: implement setRawOption
   }
 
-  /// Useless method
-  @deprecated
+  @Deprecated("Useless method")
   @override
   Uint8List getRawOption(RawSocketOption option) {
     // TODO: implement getRawOption
