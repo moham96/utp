@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+
+import 'package:logging/logging.dart';
 
 import 'utils.dart';
 import 'enums/utp_connection_state.dart';
@@ -11,6 +12,8 @@ import 'utp_data.dart';
 import 'utp_server_impl.dart';
 import 'base/utp_socket.dart';
 import 'base/utp_close_handler.dart';
+
+var _log = Logger('UTPSocketImpl');
 
 class UTPSocketImpl extends UTPSocket {
   @override
@@ -793,9 +796,8 @@ class UTPSocketImpl extends UTPSocket {
       _rtoTimer?.cancel();
       if (_inflightPackets.isEmpty) return;
       if (times + 1 >= MAX_TIMEOUT) {
-        dev.log('Socket closed :',
-            error: 'Send data timeout (${times + 1}/$MAX_TIMEOUT)',
-            name: runtimeType.toString());
+        _log.warning(
+            'Socket closed :', 'Send data timeout (${times + 1}/$MAX_TIMEOUT)');
         addError('Send data timeout');
         closeForce();
         await _closeCompleter.future;

@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:developer' as dev;
+import 'package:logging/logging.dart';
+
 import 'utils.dart';
 import 'enums/utp_connection_state.dart';
 import 'utp_data.dart';
@@ -9,6 +10,8 @@ import 'base/utp_socket.dart';
 import 'utp_socket_impl.dart';
 import 'base/utp_socket_recorder.dart';
 import 'base/utp_close_handler.dart';
+
+var _log = Logger('UTPSocketClient');
 
 ///
 /// UTP socket client.
@@ -91,21 +94,17 @@ class UTPSocketClient extends UTPCloseHandler with UTPSocketRecorder {
       try {
         data = parseData(datagram.data);
       } catch (e) {
-        dev.log('Process receive data error :',
-            error: e, name: runtimeType.toString());
+        _log.warning('Process receive data error :', e);
         return;
       }
       if (data == null) {
-        dev.log('Process receive data error :',
-            error: 'Data is null', name: runtimeType.toString());
+        _log.warning('Process receive data error :', 'Data is null');
         return;
       }
       var connId = data.connectionId;
       var utp = findUTPSocket(connId);
       if (utp == null) {
-        dev.log('UTP error',
-            error: 'Can not find connection $connId',
-            name: runtimeType.toString());
+        _log.warning('UTP error', 'Can not find connection $connId');
         return;
       }
       var completer = _connectingSocketMap.remove(connId);
@@ -123,7 +122,7 @@ class UTPSocketClient extends UTPCloseHandler with UTPSocketRecorder {
   }
 
   void _onError(dynamic e) {
-    dev.log('UDP socket error:', error: e, name: runtimeType.toString());
+    _log.warning('UDP socket error:', e);
   }
 
   /// Close the raw UDP socket and all UTP sockets

@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:developer' as dev;
 import 'dart:io';
+
+import 'package:logging/logging.dart';
 
 import 'utils.dart';
 import 'utp_data.dart';
@@ -20,6 +21,8 @@ const MAX_PACKET_SIZE = 1382;
 const MIN_PACKET_SIZE = 150;
 
 const MAX_CWND_INCREASE_PACKETS_PER_RTT = 3000;
+
+var _log = Logger("ServerUTPSocketImpl");
 
 class ServerUTPSocketImpl extends ServerUTPSocket with UTPSocketRecorder {
   bool _closed = false;
@@ -44,13 +47,11 @@ class ServerUTPSocketImpl extends ServerUTPSocket with UTPSocketRecorder {
         try {
           data = parseData(datagram.data);
         } catch (e) {
-          dev.log('Process receive data error :',
-              error: e, name: runtimeType.toString());
+          _log.warning('Process receive data error :', e);
           return;
         }
         if (data == null) {
-          dev.log('Process receive data error :',
-              error: 'Data is null', name: runtimeType.toString());
+          _log.warning('Process receive data error :', 'Data is null');
           return;
         }
         var connId = data.connectionId;
@@ -67,7 +68,7 @@ class ServerUTPSocketImpl extends ServerUTPSocket with UTPSocketRecorder {
     }, onDone: () {
       close('Remote/Local socket closed');
     }, onError: (e) {
-      dev.log('UDP error:', error: e, name: runtimeType.toString());
+      _log.warning('UDP error:', e);
     });
   }
 
