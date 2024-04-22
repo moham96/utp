@@ -96,7 +96,7 @@ class UTPSocketImpl extends UTPSocket {
   final List<List<int>> _baseDelays = <List<int>>[];
 
   /// Sending FIN message and closing the socket with a future controlling the completer.
-  Completer _closeCompleter = Completer();
+  Completer? _closeCompleter;
 
   @override
   bool get isClosed => _closed;
@@ -171,7 +171,9 @@ class UTPSocketImpl extends UTPSocket {
   void _requestSendData([List<int>? data]) {
     if (data != null && data.isNotEmpty) _sendingDataBuffer.addAll(data);
     if (_sendingDataBuffer.isEmpty) {
-      if (!_closeCompleter.isCompleted && _sendingDataCache.isEmpty) {
+      if (_closeCompleter != null &&
+          !_closeCompleter!.isCompleted &&
+          _sendingDataCache.isEmpty) {
         //This means that the FIN message can be sent at this time
         _sendFIN();
       }
@@ -348,8 +350,9 @@ class UTPSocketImpl extends UTPSocket {
   Future destroy() async {
     connectionState = UTPConnectState.CLOSING;
     await sendResetMessage(sendId, socket, remoteAddress, remotePort);
+    _closeCompleter ??= Completer();
     closeForce();
-    return _closeCompleter.future;
+    return _closeCompleter?.future;
   }
 
   @override
@@ -503,11 +506,12 @@ class UTPSocketImpl extends UTPSocket {
 
   @override
   Future close([dynamic reason]) {
+    if (isClosed) return Future(() => null);
     connectionState = UTPConnectState.CLOSING;
     _closeCompleter = Completer();
     Timer(Duration.zero, () => _requestSendData(null));
     // Timer.run(() => _requestSendData(null));
-    return _closeCompleter.future;
+    return _closeCompleter!.future;
   }
 
   /// Resend a Packet
@@ -799,8 +803,9 @@ class UTPSocketImpl extends UTPSocket {
         _log.warning(
             'Socket closed :', 'Send data timeout (${times + 1}/$MAX_TIMEOUT)');
         addError('Send data timeout');
+        _closeCompleter ??= Completer();
         closeForce();
-        await _closeCompleter.future;
+        await _closeCompleter!.future;
         return;
       }
       // dev.log(
@@ -1093,8 +1098,9 @@ class UTPSocketImpl extends UTPSocket {
     Timer.run(() {
       _handler?.socketClosed(this);
       _handler = null;
-      if (!_closeCompleter.isCompleted) {
-        _closeCompleter.complete();
+      if (_closeCompleter != null && !_closeCompleter!.isCompleted) {
+        _closeCompleter!.complete();
+        _closeCompleter = null;
       }
     });
     _finSended = false;
