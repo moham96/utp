@@ -55,3 +55,7 @@
 ## 1.0.3
 
 - pub.dev fixes
+
+## 1.0.4
+- fix regressions
+- use logging package
